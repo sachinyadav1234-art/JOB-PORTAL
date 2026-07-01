@@ -62,8 +62,12 @@ function App() {
         } />
       </Routes>
 
-
-
+      <footer className="bg-slate-950 border-t border-slate-900 py-8 text-center text-xs text-slate-500 relative z-10">
+        <p className="flex items-center justify-center gap-1.5 font-medium text-slate-400">
+          Made with <span className="text-rose-500 animate-pulse">❤️</span> by BTech CSE & IT Students
+        </p>
+        <p className="mt-1 text-slate-600">&copy; {new Date().getFullYear()} JobPortal. Designed for Freshers.</p>
+      </footer>
       
     </BrowserRouter>
   )
