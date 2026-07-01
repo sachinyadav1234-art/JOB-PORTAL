@@ -10,6 +10,39 @@ function Dashboard() {
   const [applications, setApplications] = useState([])
   const [myJobs, setMyJobs] = useState([])
   const [loading, setLoading] = useState(true)
+  const [expandedJobId, setExpandedJobId] = useState(null)
+  const [selectedJobApplications, setSelectedJobApplications] = useState([])
+  const [appsLoading, setAppsLoading] = useState(false)
+
+  const handleToggleExpandJob = async (jobId) => {
+    if (expandedJobId === jobId) {
+      setExpandedJobId(null)
+      setSelectedJobApplications([])
+      return
+    }
+    try {
+      setExpandedJobId(jobId)
+      setAppsLoading(true)
+      const res = await API.get(`/applications/job/${jobId}`)
+      setSelectedJobApplications(res.data.applications)
+    } catch (err) {
+      toast.error('Failed to load candidate applications')
+    } finally {
+      setAppsLoading(false)
+    }
+  }
+
+  const handleUpdateStatus = async (appId, newStatus) => {
+    try {
+      await API.put(`/applications/${appId}/status`, { status: newStatus })
+      toast.success(`Application status updated to ${newStatus}`)
+      setSelectedJobApplications(prev => 
+        prev.map(app => app._id === appId ? { ...app, status: newStatus } : app)
+      )
+    } catch (err) {
+      toast.error('Failed to update status')
+    }
+  }
 
   useEffect(() => {
     const loadData = async () => {
@@ -185,23 +218,119 @@ function Dashboard() {
                   {myJobs.map((job) => (
                     <div 
                       key={job._id} 
-                      className="bg-slate-900/40 hover:bg-slate-900/60 border border-slate-850 rounded-2xl p-5 flex justify-between items-center flex-wrap gap-4 transition duration-200"
+                      className="bg-slate-900/40 border border-slate-850 rounded-2xl p-5 transition duration-200"
                     >
-                      <div>
-                        <h4 className="font-bold text-white text-base leading-tight">{job.title}</h4>
-                        <p className="text-slate-350 text-sm font-semibold mt-1">🏢 {job.company}</p>
-                        <div className="flex items-center gap-3 text-xs text-slate-500 mt-2">
-                          <span>📍 {job.location}</span>
-                          <span>•</span>
-                          <span className="capitalize">{job.jobType}</span>
+                      <div className="flex justify-between items-center flex-wrap gap-4">
+                        <div>
+                          <h4 className="font-bold text-white text-base leading-tight">{job.title}</h4>
+                          <p className="text-slate-350 text-sm font-semibold mt-1">🏢 {job.company}</p>
+                          <div className="flex items-center gap-3 text-xs text-slate-500 mt-2">
+                            <span>📍 {job.location}</span>
+                            <span>•</span>
+                            <span className="capitalize">{job.jobType}</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2.5 flex-wrap">
+                          <button
+                            onClick={() => handleToggleExpandJob(job._id)}
+                            className="bg-indigo-650/15 hover:bg-indigo-650/30 text-indigo-400 border border-indigo-500/25 text-xs px-3.5 py-1.5 rounded-xl font-semibold transition duration-200 active:scale-95"
+                          >
+                            {expandedJobId === job._id ? 'Hide Applications' : 'View Applications'}
+                          </button>
+                          <button
+                            onClick={() => handleDeleteJob(job._id)}
+                            className="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 text-xs px-3.5 py-1.5 rounded-xl font-semibold transition duration-200 active:scale-95 shrink-0"
+                          >
+                            Delete Listing
+                          </button>
                         </div>
                       </div>
-                      <button
-                        onClick={() => handleDeleteJob(job._id)}
-                        className="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 text-xs px-3.5 py-1.5 rounded-xl font-semibold transition duration-200 active:scale-95 shrink-0"
-                      >
-                        Delete Listing
-                      </button>
+
+                      {/* Expanded candidates view */}
+                      {expandedJobId === job._id && (
+                        <div className="mt-5 pt-5 border-t border-slate-850/80">
+                          {appsLoading ? (
+                            <div className="flex justify-center items-center py-6">
+                              <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-indigo-500"></div>
+                            </div>
+                          ) : selectedJobApplications.length === 0 ? (
+                            <p className="text-slate-500 text-xs py-4 text-center bg-slate-950/20 rounded-xl border border-slate-900 border-dashed">
+                              No candidates have applied for this position yet.
+                            </p>
+                          ) : (
+                            <div className="flex flex-col gap-4 mt-3">
+                              <h5 className="text-[10px] font-bold text-slate-400 tracking-wider uppercase mb-1">
+                                Candidate Applications ({selectedJobApplications.length})
+                              </h5>
+                              <div className="flex flex-col gap-3">
+                                {selectedJobApplications.map((app) => (
+                                  <div key={app._id} className="bg-slate-950/60 border border-slate-900 rounded-xl p-4">
+                                    <div className="flex justify-between items-start flex-wrap gap-3">
+                                      <div>
+                                        <h6 className="font-bold text-white text-sm">{app.applicant?.name}</h6>
+                                        <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1 text-[11px] text-slate-400">
+                                          <span>📧 {app.applicant?.email}</span>
+                                          {app.applicant?.phone && <span>📞 {app.applicant?.phone}</span>}
+                                        </div>
+                                      </div>
+                                      
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-[10px] text-slate-500 font-semibold uppercase">Status:</span>
+                                        <select
+                                          value={app.status}
+                                          onChange={(e) => handleUpdateStatus(app._id, e.target.value)}
+                                          className="bg-slate-900 border border-slate-850 text-slate-200 text-xs rounded-lg px-2.5 py-1 focus:outline-none focus:border-indigo-500"
+                                        >
+                                          <option value="applied">Applied</option>
+                                          <option value="reviewed">Reviewed</option>
+                                          <option value="accepted">Accepted</option>
+                                          <option value="rejected">Rejected</option>
+                                        </select>
+                                      </div>
+                                    </div>
+
+                                    {/* Skills */}
+                                    {app.applicant?.skills && app.applicant.skills.length > 0 && (
+                                      <div className="flex flex-wrap gap-1.5 mt-3">
+                                        {app.applicant.skills.map((skill, index) => (
+                                          <span 
+                                            key={index} 
+                                            className="bg-slate-900 text-slate-350 text-[10px] px-2 py-0.5 rounded-md border border-slate-850"
+                                          >
+                                            {skill}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    )}
+
+                                    {/* Cover Letter */}
+                                    {app.coverLetter && (
+                                      <div className="mt-3.5 bg-slate-900/40 p-3 rounded-lg border border-slate-850/50">
+                                        <span className="text-[10px] text-slate-500 font-bold uppercase block mb-1">Cover Letter</span>
+                                        <p className="text-xs text-slate-400 leading-relaxed whitespace-pre-wrap">{app.coverLetter}</p>
+                                      </div>
+                                    )}
+
+                                    {/* Resume Link */}
+                                    {app.applicant?.resume && (
+                                      <div className="mt-3 text-right">
+                                        <a 
+                                          href={app.applicant.resume} 
+                                          target="_blank" 
+                                          rel="noopener noreferrer" 
+                                          className="text-xs text-indigo-400 font-bold hover:underline inline-flex items-center gap-1"
+                                        >
+                                          📄 View Resume ↗
+                                        </a>
+                                      </div>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>

@@ -17,15 +17,54 @@ const getAllJobs = async (req, res) => {
   try {
     const { keyword, location, jobType } = req.query;
     let query = {};
-    if (keyword) {
-      query.$or = [
-        { title: { $regex: keyword, $options: 'i' } },
-        { company: { $regex: keyword, $options: 'i' } },
-        { skills: { $regex: keyword, $options: 'i' } }
-      ];
+
+    if (location) {
+      query.location = { $regex: location, $options: 'i' };
     }
-    if (location) query.location = { $regex: location, $options: 'i' };
-    if (jobType) query.jobType = jobType;
+    if (jobType) {
+      query.jobType = jobType;
+    }
+
+    if (keyword && keyword.trim()) {
+      const words = keyword.trim().split(/\s+/).filter(Boolean);
+      if (words.length > 0) {
+        // Try strict $and match across all keywords first
+        const andQueries = words.map(word => ({
+          $or: [
+            { title: { $regex: word, $options: 'i' } },
+            { company: { $regex: word, $options: 'i' } },
+            { skills: { $regex: word, $options: 'i' } },
+            { description: { $regex: word, $options: 'i' } }
+          ]
+        }));
+
+        const andQuery = { ...query, $and: andQueries };
+        let jobs = await Job.find(andQuery)
+          .populate('postedBy', 'name email')
+          .sort({ createdAt: -1 });
+
+        if (jobs.length > 0) {
+          return res.json({ success: true, count: jobs.length, jobs });
+        }
+
+        // Fallback to flexible $or match if strict match yields zero results
+        const orQueries = words.map(word => ({
+          $or: [
+            { title: { $regex: word, $options: 'i' } },
+            { company: { $regex: word, $options: 'i' } },
+            { skills: { $regex: word, $options: 'i' } },
+            { description: { $regex: word, $options: 'i' } }
+          ]
+        }));
+
+        const orQuery = { ...query, $or: orQueries };
+        jobs = await Job.find(orQuery)
+          .populate('postedBy', 'name email')
+          .sort({ createdAt: -1 });
+
+        return res.json({ success: true, count: jobs.length, jobs });
+      }
+    }
 
     const jobs = await Job.find(query)
       .populate('postedBy', 'name email')
