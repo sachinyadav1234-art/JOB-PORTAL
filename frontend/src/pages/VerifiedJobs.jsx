@@ -4,6 +4,7 @@ import toast from 'react-hot-toast'
 
 function VerifiedJobs() {
   const [jobs, setJobs] = useState([])
+  const [searchTerm, setSearchTerm] = useState('')
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
 
@@ -33,6 +34,16 @@ function VerifiedJobs() {
     fetchJobs()
   }, [])
 
+  const filteredJobs = jobs.filter(job => {
+    const term = searchTerm.toLowerCase();
+    return (
+      job.title.toLowerCase().includes(term) ||
+      job.company.toLowerCase().includes(term) ||
+      (job.location && job.location.toLowerCase().includes(term)) ||
+      (job.skills && job.skills.some(s => s.toLowerCase().includes(term)))
+    );
+  })
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 py-12 px-6">
       <div className="max-w-6xl mx-auto">
@@ -58,6 +69,19 @@ function VerifiedJobs() {
           </button>
         </div>
 
+        {/* Local Search Filter */}
+        {jobs.length > 0 && (
+          <div className="mb-8 max-w-md">
+            <input
+              type="text"
+              placeholder="Filter these verified jobs by title, company, or skills..."
+              className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3.5 text-xs focus:outline-none focus:border-indigo-500 text-slate-100 placeholder-slate-700 focus:ring-1 focus:ring-indigo-500/20 transition-all duration-200"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+        )}
+
         {/* Jobs Feed Grid */}
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20">
@@ -72,9 +96,17 @@ function VerifiedJobs() {
               Click the 'Sync Live Careers Feeds' button above to crawl the web and verify open fresher jobs in real time.
             </p>
           </div>
+        ) : filteredJobs.length === 0 ? (
+          <div className="text-center py-20 bg-slate-900 bg-opacity-40 rounded-2xl border border-slate-800 border-dashed">
+            <div className="text-4xl mb-4">🔍</div>
+            <h3 className="text-lg font-bold text-slate-300">No matching jobs found</h3>
+            <p className="text-slate-500 text-sm mt-1 max-w-md mx-auto">
+              Try adjusting your filter keywords.
+            </p>
+          </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {jobs.map((job) => (
+            {filteredJobs.map((job) => (
               <div 
                 key={job._id} 
                 className="group relative bg-slate-900 bg-opacity-40 hover:bg-opacity-65 backdrop-blur-md rounded-2xl p-6 border border-slate-800 hover:border-indigo-500/50 shadow-xl transition-all duration-300 flex flex-col justify-between"
@@ -125,7 +157,7 @@ function VerifiedJobs() {
                     href={job.link}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mt-5 w-full inline-flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-4 rounded-xl text-sm transition-all duration-200 shadow-lg shadow-indigo-600/20"
+                    className="mt-5 w-full inline-flex items-center justify-center bg-indigo-600 hover:bg-indigo-750 text-white font-bold py-2.5 px-4 rounded-xl text-sm transition-all duration-200 shadow-lg shadow-indigo-600/20"
                   >
                     Apply on Official Careers Page ↗
                   </a>

@@ -13,17 +13,21 @@ const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 // ─────────────────────────────────────
 const searchRealJobs = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id);
+    const { keyword } = req.query;
+    let searchQuery;
 
-    if (!user.skills || user.skills.length === 0) {
-      return res.status(400).json({
-        message: 'Please add your skills in profile first'
-      });
+    if (keyword && keyword.trim()) {
+      searchQuery = `${keyword.trim()} fresher jobs India`;
+    } else {
+      const user = await User.findById(req.user.id);
+      if (!user.skills || user.skills.length === 0) {
+        return res.status(400).json({
+          message: 'Please add your skills in profile first to search matching jobs, or type a custom keyword'
+        });
+      }
+      const skillsText = user.skills.join(' ');
+      searchQuery = `${skillsText} fresher jobs India`;
     }
-
-    // skills se search query banao
-    const skillsText = user.skills.join(' ');
-    const searchQuery = `${skillsText} fresher jobs India`;
 
     // Serper API se Google search karo
     const serperRes = await axios.post(

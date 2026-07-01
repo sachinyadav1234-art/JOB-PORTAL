@@ -21,9 +21,8 @@ const seedJobs = async () => {
         skills: []
       });
     }
-
-    const jobCount = await Job.countDocuments();
-    if (jobCount === 0) {
+    const hasSeeded = await Job.findOne({ company: 'Google', title: 'Software Engineer Intern' });
+    if (!hasSeeded) {
       console.log('Seeding demo job postings...');
       const demoJobs = [
         {
