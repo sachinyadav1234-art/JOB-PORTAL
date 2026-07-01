@@ -107,4 +107,45 @@ const updateProfile = async (req, res) => {
   }
 };
 
-module.exports = { register, login, getMe, updateProfile };
+const guestLogin = async (req, res) => {
+  try {
+    const { role } = req.body;
+    const targetRole = role === 'recruiter' ? 'recruiter' : 'student';
+    const email = `guest_${targetRole}@jobportal.com`;
+
+    let user = await User.findOne({ email });
+    if (!user) {
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash('guestpassword123', salt);
+
+      const guestDetails = {
+        name: targetRole === 'recruiter' ? 'Demo Recruiter (Guest)' : 'Jane Doe (Guest Student)',
+        email,
+        password: hashedPassword,
+        role: targetRole,
+        phone: '9876543210',
+        skills: targetRole === 'student' ? ['React', 'Node.js', 'Python', 'SQL', 'MongoDB', 'Git'] : []
+      };
+
+      user = await User.create(guestDetails);
+    }
+
+    const token = generateToken(user._id);
+
+    res.json({
+      success: true,
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
+    });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = { register, login, getMe, updateProfile, guestLogin };

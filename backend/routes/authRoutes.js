@@ -1,12 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const { register, login, getMe, updateProfile } = require('../controllers/authController');
+const { register, login, getMe, updateProfile, guestLogin } = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
 const { upload, uploadToCloudinary } = require('../middleware/uploadMiddleware');
 const User = require('../models/User');
 
 router.post('/register', register);
 router.post('/login', login);
+router.post('/guest-login', guestLogin);
 router.get('/me', protect, getMe);
 router.put('/profile', protect, updateProfile);
 
