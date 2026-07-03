@@ -31,4 +31,7 @@ services:
     rootDir: frontend
     envVars:
       - key: VITE_API_URL
-        value: https://${job-portal-api.host}/api
+        fromService:
+          type: web
+          name: job-portal-api
+          property: host
