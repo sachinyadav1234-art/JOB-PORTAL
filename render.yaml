@@ -26,9 +26,9 @@ services:
   # 2. Frontend React + Vite Static Site
   - type: web
     name: job-portal-ui
-    env: static
+    runtime: static
     buildCommand: npm install && npm run build
-    publishDir: dist
+    staticPublishPath: dist
     rootDir: frontend
     envVars:
       - key: VITE_API_URL
