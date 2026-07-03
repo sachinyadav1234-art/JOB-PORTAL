@@ -24,8 +24,9 @@ services:
         sync: false # Set securely in Render dashboard
 
   # 2. Frontend React + Vite Static Site
-  - type: static
+  - type: web
     name: job-portal-ui
+    env: static
     buildCommand: npm install && npm run build
     publishDir: dist
     rootDir: frontend
