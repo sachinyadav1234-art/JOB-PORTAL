@@ -24,17 +24,11 @@ services:
         sync: false # Set securely in Render dashboard
 
   # 2. Frontend React + Vite Static Site
-  - type: web
+  - type: static
     name: job-portal-ui
-    env: static
-    plan: free
     buildCommand: npm install && npm run build
     publishDir: dist
     rootDir: frontend
     envVars:
       - key: VITE_API_URL
-        fromService:
-          type: web
-          name: job-portal-api
-          property: host
-        value: https://${host}/api
+        value: https://${job-portal-api.host}/api
