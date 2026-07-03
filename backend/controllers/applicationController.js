@@ -12,7 +12,7 @@ const applyJob = async (req, res) => {
       return res.status(404).json({ message: 'Job not found' });
     }
 
-    // Check karo already apply toh nahi kiya
+    // Check if user has already applied for this job
     const alreadyApplied = await Application.findOne({
       job: req.params.jobId,
       applicant: req.user.id
@@ -63,7 +63,7 @@ const getJobApplications = async (req, res) => {
       return res.status(404).json({ message: 'Job not found' });
     }
 
-    // Sirf wahi recruiter dekh sake jo usne post ki
+    // Restrict access to the recruiter who posted the job or an admin
     if (job.postedBy.toString() !== req.user.id && req.user.role !== 'admin') {
       return res.status(403).json({ message: 'Not authorized' });
     }
@@ -104,7 +104,7 @@ const updateApplicationStatus = async (req, res) => {
 
 // ─────────────────────────────────────
 // @route   DELETE /api/applications/:id
-// @access  Private (student — apni application withdraw kare)
+// @access  Private (student - withdraw application)
 // ─────────────────────────────────────
 const withdrawApplication = async (req, res) => {
   try {

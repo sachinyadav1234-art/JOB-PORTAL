@@ -29,7 +29,7 @@ const searchRealJobs = async (req, res) => {
       searchQuery = `${skillsText} fresher jobs India`;
     }
 
-    // Serper API se Google search karo
+    // Execute search query using Serper API
     const serperRes = await axios.post(
       'https://google.serper.dev/search',
       { q: searchQuery, num: 10 },
@@ -47,7 +47,7 @@ const searchRealJobs = async (req, res) => {
       return res.json({ success: true, jobs: [] });
     }
 
-    // raw results AI ko bhejo cleanup ke liye
+    // Send raw results to AI for extraction and cleanup
     const rawData = searchResults.map(r => ({
       title: r.title,
       link: r.link,

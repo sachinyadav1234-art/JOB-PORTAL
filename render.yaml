@@ -1,0 +1,40 @@
+services:
+  # 1. Backend Express API
+  - type: web
+    name: job-portal-api
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    rootDir: backend
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: MONGO_URI
+        sync: false # Set securely in Render dashboard
+      - key: JWT_SECRET
+        sync: false # Set securely in Render dashboard
+      - key: JWT_EXPIRE
+        value: 7d
+      - key: GROQ_API_KEY
+        sync: false # Set securely in Render dashboard
+      - key: SERPER_API_KEY
+        sync: false # Set securely in Render dashboard
+
+  # 2. Frontend React + Vite Static Site
+  - type: web
+    name: job-portal-ui
+    env: static
+    plan: free
+    buildCommand: npm install && npm run build
+    publishDir: dist
+    rootDir: frontend
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: job-portal-api
+          property: host
+        value: https://${host}/api

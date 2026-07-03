@@ -10,7 +10,7 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-// file memory mein rakhna (disk pe nahi)
+// Keep files in memory storage instead of disk
 const storage = multer.memoryStorage();
 
 const upload = multer({
@@ -25,7 +25,7 @@ const upload = multer({
   }
 });
 
-// cloudinary pe upload karne ka function
+// Upload buffer to Cloudinary stream
 const uploadToCloudinary = (buffer) => {
   return new Promise((resolve, reject) => {
     cloudinary.uploader.upload_stream(
