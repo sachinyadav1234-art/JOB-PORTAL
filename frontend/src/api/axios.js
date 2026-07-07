@@ -1,6 +1,9 @@
 import axios from 'axios';
 
 let apiURL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+if (apiURL) {
+  apiURL = apiURL.replace(/[\uFEFF\u200B\u200C\u200D]/g, '').trim();
+}
 if (apiURL && !apiURL.startsWith('http://') && !apiURL.startsWith('https://')) {
   // If Render Blueprint only provides the raw host, format it properly
   apiURL = `https://${apiURL}/api`;
