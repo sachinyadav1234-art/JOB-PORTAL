@@ -4,6 +4,8 @@ let apiURL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 if (apiURL && !apiURL.startsWith('http://') && !apiURL.startsWith('https://')) {
   // If Render Blueprint only provides the raw host, format it properly
   apiURL = `https://${apiURL}/api`;
+} else if (apiURL && !apiURL.endsWith('/api') && !apiURL.endsWith('/api/')) {
+  apiURL = apiURL.endsWith('/') ? `${apiURL}api` : `${apiURL}/api`;
 }
 
 const API = axios.create({
