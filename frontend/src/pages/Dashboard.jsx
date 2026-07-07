@@ -25,7 +25,7 @@ function Dashboard() {
       setAppsLoading(true)
       const res = await API.get(`/applications/job/${jobId}`)
       setSelectedJobApplications(res.data.applications)
-    } catch (err) {
+    } catch {
       toast.error('Failed to load candidate applications')
     } finally {
       setAppsLoading(false)
@@ -39,7 +39,7 @@ function Dashboard() {
       setSelectedJobApplications(prev => 
         prev.map(app => app._id === appId ? { ...app, status: newStatus } : app)
       )
-    } catch (err) {
+    } catch {
       toast.error('Failed to update status')
     }
   }
@@ -75,7 +75,7 @@ function Dashboard() {
       await API.delete(`/jobs/${jobId}`)
       toast.success('Job deleted!')
       setMyJobs(myJobs.filter(j => j._id !== jobId))
-    } catch (err) {
+    } catch {
       toast.error('Failed to delete job')
     }
   }
@@ -85,7 +85,7 @@ function Dashboard() {
       await API.delete(`/applications/${appId}`)
       toast.success('Application withdrawn!')
       setApplications(applications.filter(a => a._id !== appId))
-    } catch (err) {
+    } catch {
       toast.error('Failed to withdraw')
     }
   }

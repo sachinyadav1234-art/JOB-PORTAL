@@ -19,8 +19,20 @@ function Jobs() {
       setLoading(false)
     }
   }
-
-  useEffect(() => { fetchJobs() }, [])
+  useEffect(() => {
+    const initFetch = async () => {
+      try {
+        setLoading(true)
+        const res = await API.get('/jobs?keyword=&location=')
+        setJobs(res.data.jobs)
+      } catch (err) {
+        console.log(err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    initFetch()
+  }, [])
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 py-12 px-6 relative overflow-hidden">

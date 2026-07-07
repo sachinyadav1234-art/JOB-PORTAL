@@ -107,6 +107,10 @@ const deleteJob = async (req, res) => {
     if (job.postedBy.toString() !== req.user.id && req.user.role !== 'admin') {
       return res.status(403).json({ message: 'Not authorized to delete this job' });
     }
+    // Cascade delete all associated applications
+    const Application = require('../models/Application');
+    await Application.deleteMany({ job: req.params.id });
+
     await job.deleteOne();
     res.json({ success: true, message: 'Job deleted successfully' });
   } catch (error) {

@@ -87,9 +87,14 @@ const updateApplicationStatus = async (req, res) => {
   try {
     const { status } = req.body;
 
-    const application = await Application.findById(req.params.id);
+    const application = await Application.findById(req.params.id).populate('job');
     if (!application) {
       return res.status(404).json({ message: 'Application not found' });
+    }
+
+    // Verify if recruiter owns this job or is admin
+    if (application.job.postedBy.toString() !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Not authorized to update status for this job application' });
     }
 
     application.status = status;
